@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hbb/consts.dart';
@@ -457,6 +458,27 @@ class ServerModel with ChangeNotifier {
     updateClientState();
     if (isAndroid) {
       androidUpdatekeepScreenOn();
+      // [SAGRES TOTEM] Auto-configurar senha permanente na primeira execução
+      _autoSetPermanentPassword();
+    }
+  }
+
+  /// [SAGRES TOTEM] Configura senha permanente padrão automaticamente
+  Future<void> _autoSetPermanentPassword() async {
+    try {
+      final alreadySet = await bind.mainGetCommon(key: "permanent-password-set");
+      if (alreadySet != "true") {
+        // Senha padrão para acesso remoto do suporte Sagres
+        const defaultPassword = "sagres2026";
+        final ok = await bind.mainSetPermanentPasswordWithResult(password: defaultPassword);
+        if (ok) {
+          // Usar apenas senha permanente (sem temporária)
+          bind.mainSetOption(key: kOptionVerificationMethod, value: kUsePermanentPassword);
+          debugPrint('[SAGRES] Senha permanente configurada automaticamente');
+        }
+      }
+    } catch (e) {
+      debugPrint('[SAGRES] Erro ao configurar senha: $e');
     }
   }
 
@@ -476,6 +498,16 @@ class ServerModel with ChangeNotifier {
     if (id != _serverId.id) {
       _serverId.id = id;
       notifyListeners();
+    }
+    // [SAGRES TOTEM] Escrever ID no arquivo compartilhado para o totem ler
+    if (id.isNotEmpty && Platform.isAndroid) {
+      try {
+        final file = File('/storage/emulated/0/Download/rustdesk_id.txt');
+        await file.writeAsString(id);
+        debugPrint('[SAGRES] RustDesk ID salvo: $id');
+      } catch (e) {
+        debugPrint('[SAGRES] Erro ao salvar ID: $e');
+      }
     }
   }
 
