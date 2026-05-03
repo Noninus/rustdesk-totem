@@ -32,37 +32,9 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
-// Add rustls-platform-verifier Android support
-String findRustlsPlatformVerifierMavenDir() {
-    def dependencyText = providers.exec {
-        it.workingDir = new File("../..")
-        commandLine("cargo", "metadata", "--format-version", "1")
-    }.standardOutput.asText.get()
-
-    def dependencyJson = new JsonSlurper().parseText(dependencyText)
-    def pkg = dependencyJson.packages.find { it.name == "rustls-platform-verifier-android" }
-    
-    if (pkg == null) {
-        throw new GradleException("rustls-platform-verifier-android package not found in cargo metadata!")
-    }
-    
-    def manifestPath = file(pkg.manifest_path)
-    def mavenDir = new File(manifestPath.parentFile, "maven")
-    
-    if (!mavenDir.exists()) {
-        throw new GradleException("Maven directory not found at: ${mavenDir.path}")
-    }
-    
-    println("✓ Found rustls-platform-verifier maven repo at: ${mavenDir.path}")
-    return mavenDir.path
-}
-
-
+// [SAGRES TOTEM] rustls-platform-verifier maven desabilitado (libs pré-compiladas)
+// A lib nativa já está em jniLibs/, não precisa do cargo/maven local.
 repositories {
-    maven {
-        url = findRustlsPlatformVerifierMavenDir()
-        metadataSources.artifact()
-    }
 }
 
 protobuf {
@@ -133,5 +105,6 @@ dependencies {
     implementation 'com.github.getActivity:XXPermissions:18.5'
     implementation("org.jetbrains.kotlin:kotlin-stdlib") { version { strictly("1.9.10") } }
     implementation 'com.caverock:androidsvg-aar:1.4'
-    implementation "rustls:rustls-platform-verifier:0.1.1"
+    // [SAGRES TOTEM] rustls já está embutida na liblibrustdesk.so (jniLibs)
+    // implementation "rustls:rustls-platform-verifier:0.1.1"
 }
