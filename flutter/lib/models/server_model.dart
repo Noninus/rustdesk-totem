@@ -463,18 +463,18 @@ class ServerModel with ChangeNotifier {
     }
   }
 
-  /// [SAGRES TOTEM] Exporta ID pro arquivo compartilhado (1x no start)
+  /// [SAGRES TOTEM] Exporta ID pro arquivo compartilhado (só se mudou)
   Future<void> _exportarId() async {
     try {
       final id = await bind.mainGetMyId();
-      if (id.isNotEmpty) {
-        final file = File('/storage/emulated/0/Download/rustdesk_id.txt');
+      if (id.isEmpty) return;
+      final file = File('/storage/emulated/0/Download/rustdesk_id.txt');
+      final atual = file.existsSync() ? file.readAsStringSync().trim() : '';
+      if (atual != id) {
         await file.writeAsString(id);
         debugPrint('[SAGRES] RustDesk ID exportado: $id');
       }
-    } catch (e) {
-      debugPrint('[SAGRES] Erro ao exportar ID: $e');
-    }
+    } catch (_) {}
   }
 
   /// [SAGRES TOTEM] Configura senha permanente padrão automaticamente
@@ -513,7 +513,6 @@ class ServerModel with ChangeNotifier {
       _serverId.id = id;
       notifyListeners();
     }
-    // [SAGRES TOTEM] ID exportado no startService, não aqui
   }
 
   changeStatue(String name, bool value) {
