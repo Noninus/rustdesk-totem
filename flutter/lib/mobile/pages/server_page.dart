@@ -605,10 +605,8 @@ class _PermissionCheckerState extends State<PermissionChecker> {
             PermissionRow(
                 translate("Screen Capture"),
                 serverModel.mediaOk,
-                !serverModel.mediaOk &&
-                        gFFI.userModel.userName.value.isEmpty &&
-                    // [SAGRES TOTEM] Scam warning desabilitado
-                    serverModel.toggleService),
+                // [SAGRES TOTEM] Scam warning desabilitado
+                serverModel.toggleService),
           PermissionRow(
             translate("Input Control"),
             serverModel.inputOk,
