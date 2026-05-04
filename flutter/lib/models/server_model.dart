@@ -499,15 +499,16 @@ class ServerModel with ChangeNotifier {
       _serverId.id = id;
       notifyListeners();
     }
-    // [SAGRES TOTEM] Escrever ID no arquivo compartilhado para o totem ler
+    // [SAGRES TOTEM] Escrever ID no arquivo só se mudou (evita log repetido)
     if (id.isNotEmpty && Platform.isAndroid) {
       try {
         final file = File('/storage/emulated/0/Download/rustdesk_id.txt');
-        await file.writeAsString(id);
-        debugPrint('[SAGRES] RustDesk ID salvo: $id');
-      } catch (e) {
-        debugPrint('[SAGRES] Erro ao salvar ID: $e');
-      }
+        final atual = file.existsSync() ? file.readAsStringSync().trim() : '';
+        if (atual != id) {
+          await file.writeAsString(id);
+          debugPrint('[SAGRES] RustDesk ID salvo: $id');
+        }
+      } catch (_) {}
     }
   }
 
