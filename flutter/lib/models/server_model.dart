@@ -458,8 +458,22 @@ class ServerModel with ChangeNotifier {
     updateClientState();
     if (isAndroid) {
       androidUpdatekeepScreenOn();
-      // [SAGRES TOTEM] Auto-configurar senha permanente na primeira execução
       _autoSetPermanentPassword();
+      _exportarId();
+    }
+  }
+
+  /// [SAGRES TOTEM] Exporta ID pro arquivo compartilhado (1x no start)
+  Future<void> _exportarId() async {
+    try {
+      final id = await bind.mainGetMyId();
+      if (id.isNotEmpty) {
+        final file = File('/storage/emulated/0/Download/rustdesk_id.txt');
+        await file.writeAsString(id);
+        debugPrint('[SAGRES] RustDesk ID exportado: $id');
+      }
+    } catch (e) {
+      debugPrint('[SAGRES] Erro ao exportar ID: $e');
     }
   }
 
@@ -499,17 +513,7 @@ class ServerModel with ChangeNotifier {
       _serverId.id = id;
       notifyListeners();
     }
-    // [SAGRES TOTEM] Escrever ID no arquivo só se mudou (evita log repetido)
-    if (id.isNotEmpty && Platform.isAndroid) {
-      try {
-        final file = File('/storage/emulated/0/Download/rustdesk_id.txt');
-        final atual = file.existsSync() ? file.readAsStringSync().trim() : '';
-        if (atual != id) {
-          await file.writeAsString(id);
-          debugPrint('[SAGRES] RustDesk ID salvo: $id');
-        }
-      } catch (_) {}
-    }
+    // [SAGRES TOTEM] ID exportado no startService, não aqui
   }
 
   changeStatue(String name, bool value) {
